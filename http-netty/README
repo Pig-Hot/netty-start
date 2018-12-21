@@ -1,0 +1,10 @@
+整个流程：
+Netty服务端收到请求---HTTP报文解码---根据路由规则转发URL地址---  HTTP POST到转发的URL地址---获取响应结果---响应结果解码---HTTP透传结果到客户端
+
+1.首先是Netty的服务端连接器（Acceptor）线程接收到HTTP请求，然后会把这个请求放入后端Netty专门负责处理I/O操作的线程池中。这个也是Netty经典的主从Reactor多线程模型的应用。
+2.I/O处理线程先对HTTP请求，调用HttpRequestDecoder解码器进行解码。
+3.HttpRequestDecoder把解码的结果，通知给路由规则计算的核心模块（GatewayServerHandler），核心模块根据配置加上请求报文中的关键字，计算出要转发的URL地址。
+4.通过HTTP POST方式把请求，转发给计算出来的URL地址。
+5.获取HTTP POST的获得到的应答结果。
+6.然后通过HttpResponseEncoder编码器，把应答结果进行HTTP编码，最后透传给调用方。
+
