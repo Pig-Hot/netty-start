@@ -1,4 +1,4 @@
-package com.netty.start.http.httpnetty.common;
+package com.netty.start.http.httpnetty.proxy.common;
 
 //netty-gateway.properties
 public class GatewayAttribute {

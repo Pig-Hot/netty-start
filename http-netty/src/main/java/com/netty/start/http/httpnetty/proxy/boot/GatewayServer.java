@@ -1,9 +1,9 @@
-package com.netty.start.http.httpnetty.boot;
+package com.netty.start.http.httpnetty.proxy.boot;
 
-import com.netty.start.http.httpnetty.common.GatewayOptions;
-import com.netty.start.http.httpnetty.common.HostInfo;
-import com.netty.start.http.httpnetty.common.JvmInfo;
-import com.netty.start.http.httpnetty.netty.GatewayServerInitializer;
+import com.netty.start.http.httpnetty.proxy.common.GatewayOptions;
+import com.netty.start.http.httpnetty.proxy.common.HostInfo;
+import com.netty.start.http.httpnetty.proxy.common.JvmInfo;
+import com.netty.start.http.httpnetty.proxy.netty.GatewayServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.PrintWriter;
 
-import static com.netty.start.http.httpnetty.common.GatewayOptions.GATEWAY_OPTION_PARALLEL;
+import static com.netty.start.http.httpnetty.proxy.common.GatewayOptions.GATEWAY_OPTION_PARALLEL;
 
 
 public class GatewayServer {

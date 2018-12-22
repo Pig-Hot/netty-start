@@ -1,9 +1,9 @@
-package com.netty.start.http.httpnetty.netty;
+package com.netty.start.http.httpnetty.proxy.netty;
 
-import com.netty.start.http.httpnetty.common.GatewayAttribute;
-import com.netty.start.http.httpnetty.common.HttpClientUtils;
-import com.netty.start.http.httpnetty.common.RouteAttribute;
-import com.netty.start.http.httpnetty.common.RoutingLoader;
+import com.netty.start.http.httpnetty.proxy.common.GatewayAttribute;
+import com.netty.start.http.httpnetty.proxy.common.HttpClientUtils;
+import com.netty.start.http.httpnetty.proxy.common.RouteAttribute;
+import com.netty.start.http.httpnetty.proxy.common.RoutingLoader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -18,7 +18,7 @@ import org.springframework.util.StringUtils;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.netty.start.http.httpnetty.common.GatewayOptions.*;
+import static com.netty.start.http.httpnetty.proxy.common.GatewayOptions.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;

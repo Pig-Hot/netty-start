@@ -3,8 +3,8 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean id="options"
-          class="com.netty.start.http.httpnetty.common.GatewayOptions">
+          class="com.netty.start.http.httpnetty.proxy.common.GatewayOptions">
         <property name="gatewayPort" value="8999"/>
     </bean>
-    <bean class="com.netty.start.http.httpnetty.common.RoutingLoader"/>
+    <bean class="com.netty.start.http.httpnetty.proxy.common.RoutingLoader"/>
 </beans>

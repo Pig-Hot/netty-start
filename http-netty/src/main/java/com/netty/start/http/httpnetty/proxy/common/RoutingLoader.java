@@ -1,4 +1,4 @@
-package com.netty.start.http.httpnetty.common;
+package com.netty.start.http.httpnetty.proxy.common;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
@@ -12,7 +12,7 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.util.*;
 
-import static com.netty.start.http.httpnetty.common.GatewayOptions.*;
+import static com.netty.start.http.httpnetty.proxy.common.GatewayOptions.*;
 
 public class RoutingLoader implements BeanDefinitionRegistryPostProcessor {
     public static final List<RouteAttribute> ROUTERS = new ArrayList<>();

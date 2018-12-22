@@ -1,4 +1,4 @@
-package com.netty.start.http.httpnetty.common;
+package com.netty.start.http.httpnetty.proxy.common;
 
 
 import org.apache.http.HttpEntity;
@@ -13,7 +13,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static com.netty.start.http.httpnetty.common.GatewayOptions.GATEWAY_OPTION_SERVICE_ACCESS_ERROR;
+import static com.netty.start.http.httpnetty.proxy.common.GatewayOptions.GATEWAY_OPTION_SERVICE_ACCESS_ERROR;
 
 public class HttpClientUtils {
     public static StringBuilder post(String serverUrl, String xml) {

@@ -1,4 +1,4 @@
-package com.netty.start.http.httpnetty.common;
+package com.netty.start.http.httpnetty.proxy.common;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
