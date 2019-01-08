@@ -1,0 +1,24 @@
+线程模型指定了操作系统,编程语言,框架或者应用程序的上下文中的线程管理方面
+基本线程池化模式可以描叙为:
+    从池的空闲线程列表中选择一个Thread，并且指派它去运行一个已提交的任务（一个Runnable的实现）   ；
+    当任务完成时，将该Thread返回给该列表，使其可被重用。
+
+EventLoop接口:
+    Netty的EventLoop是协同设计的一部分,它采用两个基本的API 并发和网络编程
+    Netty的concurrent构建在jdk的concurrent上,EventLoop的父类是EventExcutor,顶级父类是JDK的Excutor
+    在Netty4中 所有I/O操作和事件都由EventLoop中线程来处理
+    一个EventLoopGroup 包含一个或者多个EventLoop
+    一个EventLoop 在它的生命周期内只和一个Thread绑定
+    所有由EventLoop处理的I/O事件都将在它专有的Thread上被处理
+    一个Channel在它的生命周期内只注册于一个EventLoop
+    一个EventLoop可能会被分配给一个或多个Channel
+
+
+任务调度:
+    在java5之前,任务调度建立在java.util.Timer上,后来java5的java.util.concurrent定义了ScheduledExecutorServic接口
+    在Netty中调度任务,Runable的实例一般由分配给Channel的EventLoop执行
+
+线程管理:
+    Netty线程模型的卓越性能取决于当前执行的Thread的身份确定,也就是说,确定他是否分配给当前Channel以及它的EventLoop的那一个线程
+    EventLoopGroup --- N EventLoop --- N Channel
+    每个EventLoop对应一个Thread,EventLoopGroup为每一个Channel分配一个EventLoop负责他整个生命周期

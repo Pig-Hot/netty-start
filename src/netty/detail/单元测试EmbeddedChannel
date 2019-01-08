@@ -1,0 +1,8 @@
+EmbeddedChannel:
+        用于测试ChannelHandler,这种传输是一种特殊的Channel的实现EmbeddedChannel的功能,这个实现提供通过ChannelPipeline传播事件的简便方法
+        将入站数据或者出站数据写入到 EmbeddedChannel 中，然后检查是否有任何东西到达了 ChannelPipeline 的尾端。以这种方式，你便可以确定消息
+    是否已经被编码或者被解码过了，以及是否触发了任何的 ChannelHandler 动作。
+    writeInbound 将入站消息写入
+    readInbound  将入站消息读出
+    writeOutbound 将出站消息写入
+    readOutbound  将出站消息读出

@@ -1,0 +1,78 @@
+ChannelHandler家族
+
+Channel的生命周期:ChannelUnregistered(Channel已经被创建,但还未注册到EventLoop)
+                 ChannelRegistered(已经被注册)
+                 ChannelActive(处于活动状态,可以接受和发送数据)
+                 ChannelInactive(没有连接到远程节点)
+
+ChannelHandler的生命周期(在ChannelHandler添加到Pipeline或被移除的时候调用):
+                handlerAdded:添加时调用
+                handlerRemoved:移除时调用
+                exceptionCaught:抛出异常时调用
+
+ChannelHandler重要的两个子接口:
+                ChannelInboundHandler——处理入站数据以及各种状态变化
+                ChannelOutboundHandler——处理出站数据并且允许拦截所有的操作
+
+ChannelInboundHandler接口常用方法:
+    channelRegistered:当channel已经注册到它的EventLoop并且能过处理I/O时被调用
+    channelUnregistered:当channel从EventLoop注销时候被调用
+    channelActive:处于活跃状态时被调用,channel已经连接/绑定并且就绪
+    channelInactive:离开活跃状态时候被调用
+    channelRead:当从channel读取数据时候调用
+    channelReadComplete:当channel上一个读操作完成时候被调用
+    ChannelWritabilityChanged:当Channel的可写状态发生改变时被调用。用户可以确保写操作不会完成得太快（以避免发生OutOfMemoryError）
+                              或者可以在Channel变为再次可写时恢复写入。可以通过调用Channel的isWritable()方法来检测Channel的可写性。
+                              与可写性相关的阈值可以通过Channel.config().setWriteHighWaterMark()和Channel.config().setWriteL
+                              -owWaterMark()方法来设置
+    userEventTriggered:ChannelInboundHandler.fireUserEventTriggered()被调用时候调用,因为POJO被传经了ChannelPipeline
+    当我们实现了ChannelInboundHandler接口的channelRead方法时,它将负责显示的释放与池化ByteBuf实例相关的内存,Netty提供方法Reference
+    -CountUtil.release(),也可以使用SimpleChannelInboundHandler它自动释放了资源
+
+ChannelOutboundHandler接口常用方法: ChannelPromise是ChannelFuture的子类
+    bind:当请求将Channel绑定到本地地址的时候被调用
+    connect: 当请求将Channel连接到远程节点的时候被调用
+    disconnect: 当请求将Channel从远程节点断开的时候被调用
+    close: 当关闭Channel时候被调用
+    deregister: 当请求从EventLoop注销的时候被调用
+    read：当请求从Channel读取数据时候被调用
+    flush：当请求通过channel将入队数据冲刷到远程节点被调用
+    weite: 当请求通过channel将数据写到远程节点时被调用
+
+ChannelHandler适配器
+你可以使用ChannelInboundHandlerAdapter和ChannelOutboundHandlerAdapter作为自己ChannelHandler的起点,它提供了基础的实现
+
+资源管理
+每当通过ChannelInboundHandler.channelRead()或者ChannelOutboundHandler.write()方法来处理数据时，你都需要确保没有任何的资源泄漏
+Netty的ResourceLeakDetector可以帮助我们进行内存泄漏检测
+在入站的时候channelRead()方法中调用ReferenceCountUtil.relase(msg);释放资源
+在出站的时候write()方法中调用ReferenceCountUtil.relase(msg);释放资源,但是注意释放资源后需要通知ChannelPromis,不然ChannelFutureListener
+收不到消息被处理了的通知情况
+
+ChannelPipeline接口
+如果你认为ChannelPipeline接口是一个拦截Channel的入站和出站的事件的ChannelHandler实例链,那么就很容易看出这些ChannelHandler之间的交互
+是如何组成一个应用程序数据的时间处理逻辑的核心
+每一个新建的Channel都会被分配一个ChannelPipeline
+事件的起源由ChannelInboundHandler或者ChannelOutboundHandler处理,随后通过ChannelHandlerContext实现,他将被转发到同一超类型的下一个
+ChannelHandler
+
+修改ChannelPipeline
+ChannelHandler可以通过添加,删除,替换或其他的ChannelHanler来实时的修改ChannelPipeline的布局
+AddFirstaddBefore
+addAfteraddLast --- 将一个ChannelHandler添加到ChannelPipeline
+remove --- 将一个ChannelHandler移除出ChannelPipeline
+replace --- 将一个ChannelHandler替换到ChannelPipeline
+
+ChannelPipeline的API公开了用于调用入站和出站操作的附加方法,入站操作用于通知ChannelInboundHandler在ChannelHandler所发生的事件
+入站操作用于通知ChannelOutboundHandler在ChannelHandler所发生的事件
+总结一下：
+ChannelPipeline保存了与Channel相关联的ChannelHandler
+ChannelPipeline可以根据需要，通过添加或者删除ChannelHandler来动态地修改
+ChannelPipeline有着丰富的API用以被调用，以响应入站和出站事件
+
+ChannelHandlerContext接口
+ChannelHandlerContext代表了ChannelHandler和ChannelPipeline之间关联,每当有ChannelHandler添加到ChannelPipeline中时,都会创建Chan
+-nelHandlerContext,ChannelHandlerContext主要功能是管理它所关联的ChannelHandler和在同一个ChannelPipeline中其他ChannelHandler交互
+
+使用ChannelHandlerContext接口
+ChannelHandlerContext的方法在ChannelPipeline和Channel也有,不同的是ChannelHandlerContext操作的消息将从下一个Handler开始流经Pipeline

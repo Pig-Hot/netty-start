@@ -1,0 +1,58 @@
+网络数据的基本单位总是字节,JavaNio提供了ByteBuffer作为它的字节容器,Netty使用ByteBuf进行了替代
+ByteBuf类 —— Netty的数据容器:
+ByteBuf维护了两个不同的索引:一个用于读取,一个用于写入,当你从ByteBuf读取时,它的readerIndex将会递增,同样当你写入的时候,writeIndex也会
+递增
+
+1.堆缓冲区
+    常用的ByteBuf模式是将数据存储在JVM的堆空间中,这种模式被称为支撑数组的,他能在没有使用池化的情况下提供快速的分配和释放,这种模式,适合
+    用于处理有遗留数据的情况
+
+2.直接缓冲区
+    这是另一种ByteBuf模式,我们也可以通过JVM实现本地调用分配内存,主要是为了避免每次调用本地I/O操作之前将缓冲区的内容复制到一个中间缓冲区
+    直接缓冲区虽然是网络数据传输最理想的选择,但是和堆缓冲区相比,它的分配和释放很昂贵
+
+3.复合缓冲区
+    它为多个ByteBuf提供一个聚合视图,在这里可以根据需要添加或者删除ByteBuf实例
+    ByteBuf通过子类---CompositeByteBuf实现了这个模式,它提供了一个将多个缓冲区合并到一个的虚拟表示
+    举例说明:
+        HTTP协议由头部和主体组成,这两个部分可能由不同的模块生成,将会在消息被发送的时候被重组,应用程序可以为多个消息重用相同的消息主体,
+        当这种情况发生的时候,对于每一个消息都会创建一个新的头部,这个时候CompositeByteBuf就是完美的选择,他消除了没必要的复制
+
+字节级操作:
+    随机访问索引
+    ByteBuf buffer = ...
+    for(int i = 0;i < buffer.capacity(); i++){
+        byte b = buffer,getByte(i);
+    }
+
+    顺序访问索引
+    ByteBuffer只有一个索引,所以需要flip()来切换模式,但是在Netty里,同时具有读写索引,ByteBuf被两个索引分割成三块区域,丢弃,可读,可写
+    可丢弃字节:包含被读过的字节,通过调用discardReadBytes()方法,可以丢弃它们并回收空间,会随着read操作的执行增加(get操作不会移动reader
+    Index),调用discardReadBytes之后read索引=0,write索引减少
+    可读字节:新分配的readerIndex=0.任何名称以read或skip开头操作都将检索或跳过位于当前readerIndex的数据,并且将它增加已读字节数
+    可写字节:可写字节是一个拥有未定义内容的,写入就绪的内存区域,新分配的缓冲区的weiterIndex默认为0
+
+    索引管理
+    类似于InputStream定义的mark(),reset()来将流当前的位置标记为指定的值,以及将流重置到该位置
+    同样,Netty通过markReaderIndex(),markWriterIndex(),resetWriterIndex()和resetReaderIndex来标记和重置ByteBuf的索引
+    我们可以通过调用clean()方法来重置,它是让索引指向0的方法,对比通过调用discardReadBytes,更加轻量级
+
+    查找操作
+    在ByteBuf中有多种可以确定指定值得索引方法,最简单的是使用indexOf()方法。较复杂的查找可以通过那些需要一个ByteProcessor作为参数
+    的方法达成 index = buffer.forEachByte(ByteProcessor.FIND_CR)
+
+    派生缓冲区
+    slice,Unpooled.unmodifiableBuffer,order,readSlice 每个方法都会返回一个新的Buf实例,如果发生改变源实例也会发生改变如果需要复制
+    一个ByteBuf请使用copy
+
+    读/写操作
+    get(),set()操作,从给定索引开始,保持索引不变
+    read(),write(),从给的索引开始,并且会根据已经访问过的字节数对索引进行调整
+
+
+ByteBufHolder接口:
+    我们在网络数据传输期间,可能除了实际的数据负载之外,还需要存储各种属性值,ByteBufHolder只有几种用于访问底层数据的引用计数方法
+
+ByteBuf分配:
+    为了降低分配和释放内存的开销,Netty通过ByteBufAllocator实现池化,ByteBufAllocator可以从Channel和ChannelHandlerContext取得引用
+    也可以通过Unpooled缓冲区工具类,静态的创建没有池化的ByteBuf实例

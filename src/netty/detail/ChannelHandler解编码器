@@ -1,0 +1,40 @@
+Netty对于SSL/TLS的支持
+为了支持SSL/TLS,Java提供了ssl包,它的SSLContext和SSLEngine类使得加解密非常简单
+Netty通过一个名为SslHandler的ChannelHandler的实现利用了这个API
+
+Netty对Http的支持
+Http请求是由 HttpRequest-HttpContent-LastHttpContent组成
+Http响应是由 HttpResponse-HttpContent-LastHttpContent组成
+HttpRequestEncoder/HttpResponseEncoder/HttpRequestDecoder/HttpResponseDecoder
+
+Netty对WebSocket支持
+要想向你的应用程序中添加对于 WebSocket 的支持，你需要将适当的客户端或者服务器WebSocket ChannelHandler 添加到 ChannelPipeline 中。
+这个类将处理由 WebSocket 定义的称为帧的特殊消息类型。
+BinaryWebSocketFrame 数据帧：二进制数据
+TextWebSocketFrame 数据帧：文本数据
+ContinuationWebSocketFrame 数据帧：属于上一个 BinaryWebSocketFrame 或者 TextWebSocketFrame 的文本的或者二进制数据
+CloseWebSocketFrame 控制帧：一个 CLOSE 请求、关闭的状态码以及关闭的原因
+PingWebSocketFrame 控制帧：请求一个 PongWebSocketFrame
+PongWebSocketFrame 控制帧：对 PingWebSocketFrame 请求的响应
+
+空闲与连接超时
+IdleStateHandler 当连接空闲时间太长时，将会触发一个 IdleStateEvent 事件。然后，你可以通过在你的 ChannelInboundHandler 中重写 userEvent
+                 Triggered()方法来处理该 IdleStateEvent 事件
+ReadTimeoutHandler 如果在指定的时间间隔内没有收到任何的入站数据，则抛出一个 ReadTimeoutException 并关闭对应的 Channel。可以通过重写你的
+                   ChannelHandler 中的 exceptionCaught()方法来检测该 ReadTimeoutException
+WriteTimeoutHandler 如果在指定的时间间隔内没有任何出站数据写入，则抛出一个 WriteTimeoutException 并关闭对应的 Channel 。可以通过重写你的
+                    ChannelHandler 的 exceptionCaught()方法检测该 WriteTimeoutException
+
+解码的分隔符协议
+DelimiterBasedFrameDecoder 使用任何由用户提供的分隔符来提取帧的通用解码器
+LineBasedFrameDecoder 提取由行尾符（\n 或者\r\n）分隔的帧的解码器。这个解码器比 DelimiterBasedFrameDecoder 更快
+
+基于长度的协议
+FixedLengthFrameDecoder 提取在调用构造函数时指定的定长帧
+LengthFieldBasedFrameDecoder 根据编码进帧头部中的长度值提取帧；该字段的偏移量以及长度在构造函数中指定
+
+写大型数据
+ChunkedFile 从文件中逐块获取数据，当你的平台不支持零拷贝或者你需要转换数据时使用
+ChunkedNioFile 和 ChunkedFile 类似，只是它使用了 FileChannel
+ChunkedStream 从 InputStream 中逐块传输内容
+ChunkedNioStream 从 ReadableByteChannel 中逐块传输内容

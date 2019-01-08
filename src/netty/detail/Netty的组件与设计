@@ -1,0 +1,71 @@
+Channel接口:
+基本I/O操作(bind(),connect(),write(),read())依赖于底层网络传输所提供的原语.基于Java的网络编程中,其基本构造是class Socket.Netty的
+Channel接口所提供的API,大大降低了直接使用Socket的复杂性
+
+EventLoop接口:
+用于处理连接的生命周期中所发生的事件,一个EventLoopGroup可以包含多个EventLoop,一个EventLoop在它的生命周期只和一个Thread绑定,所有由Ev
+-entLoop处理的I/O事件都将在它专有的hread上被处理,一个Channel在它的生命周期内只注册于一个EventLoop,一个EventLoop可能会被分配给一个或
+多个Channel
+
+ChannelFuture接口:
+Netty所以的I/O操作都是异步的,因此一个操作可能不会立即返回,所以我们需要一种用于在之后的某个时间确定其结果的方法,Netty提供了ChannelFutu
+-re接口,其addListener()方法注册了一个ChannelFutureListener,用于在某个操作完成时得到通知
+
+ChannelHandler接口:
+从应用角度来看,ChannelHandler充当了所以处理入站,出站数据的应用程序逻辑的容器,因为ChannelHandler的方法是由网络事件触发的,事实上,Chann
+-elHandler可以用于处理几乎任何类型的动作,例如数据的格式转换或者转换中出现的异常.ChannelInboundHandler是一个经常需要你实现的接口,当你
+连接客户端发送响应时,你可以用它ChannelInboundHandler冲刷数据,你的业务逻辑可能通常在一个ChannelInboundHandler或者多个ChannelInboun
+-dHandler
+
+ChannelPipeline接口:
+ChannelPipeline提供了ChannelHandle链的容器,并且定义了在该链上传播入站和出站事件的API,当Channel被创建时,他会自己自动分配到专属的Chan
+-nelPipeline,ChannelHandler安装ChannelPipeline中过程如下
+    1.一个ChannelInitializer的实现被注册到了ServerBootstrap中
+    2.当ChannelInitializer.initChannel()方法被调用时，ChannelInitializer将在ChannelPipeline中安装一组自定义的ChannelHandler
+    3.ChannelInitializer将它自己从ChannelPipeline中移除
+ChannelHandler是支持广泛的用途设计的,可以看作是处理往来ChannelPipeline事件的任何代码的通用容器,当ChannelHandler被添加到ChannelPip
+-eline时,它将会被分配一个ChannelHandlerContext,其代表了ChannelHandler和ChannelPipeline之间的绑定。虽然这个对象可以被用于获取底层
+的Channel,但是它主要还是被用于写出站数据.在Netty中,有两种发送消息的方式.你可以直接写到Channel中,也可以写到和ChannelHandler相关联的
+ChannelHandlerContext对象中.前一种方式将会导致消息从ChannelPipeline的尾端开始流动,而后者将导致消息从ChannelPipeline中的下一个
+ChannelHandler开始流动
+
+编码器和解码器:
+Netty消息入站出站会出现一次解码编码的过程
+
+传输API:
+每一个Channel都会被分配一个ChannelPipline和ChannelConfig。ChannelConfig包含了该Channel的所有配置设置,并且支持热更新,channel是独一
+无二的,所以它需要实现Comparable的子接口,如果两个不同的channel返回了相同的散列码就会抛出异常
+ChannelPipline持有应用程序所有的入站和出站数据以及事件ChannelHandler实例,这些ChannelHandler实现了应用程序处理状态变化以及数据处理逻辑
+
+写数据并冲刷到远程节点
+Channel channel = new NioSocketChannel();
+//创建持有写数据的ByteBuf
+ByteBuf buf = Unpooled.copiedBuffer("your data",CharsetUtil.UTF_8);
+//写数据并冲刷它
+ChannelFuture cf = channel.writeAndFlush(buf);
+//添加监听器,以便在写操作完成后接受通知
+cf.addListener(new ChannelFutureListener(){
+    public void operationComplete(ChannelFuture future){
+        if(future.isSuccess()){ //写操作完成并没有发生错误
+            System.out.println("Write successful");
+        }else{
+            System.err.println("Write error");
+            future.cause().printStackTrace();
+        }
+    }
+})
+
+NIO --- 非阻塞传输
+NIO提供了一个I/O操作全异步的实现,利用了JDK1.4基于选择器的API,选择器可以理解为它充当了一个注册表,在那里你将可以请求在channel的状态发生
+变化时得到通知
+
+Epoll --- 用于Linux的本地非阻塞
+一个高度可扩展的I/O事件通知特性。这个API自Linux内核版本2.5.44（2002）被引入，提供了比旧的POSIXselect和poll系统调用更好的性能，同时现
+在也是Linux上非阻塞网络编程的事实标准。Linux JDK NIO API 使用了这些epoll调用。
+
+OIO --- 阻塞传输
+Netty实现阻塞传输利用了SO_TIMEOUT这个Socket的标志,指定一个I/O操作最大时间,超时就捕获异常重新处理,在下一次EventLoop继续重试
+
+JVM-Local --- 内部通信处理传输
+
+Embedded --- 测试ChannelHandler的实现

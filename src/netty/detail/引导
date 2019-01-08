@@ -1,0 +1,68 @@
+BootStrap类: 父类是AbstractBootStrap
+    BootStrap API:
+       BootStrap group: 设置用于处理Channel所有事件的EventLoopGroup
+       BootStrap channel/channelFactory: 指定Channel的实现类
+       BootStrap localAddress: 指定Channel绑定到本地地址
+       Bootstrap option: 设置ChannelOption,将被应用到每个新建的Channel的ChannelConfig
+       BootStrap handler: 设置将被添加到ChannelPipeline的ChannelHandler
+       Bootstrap attr: 指定新创建Channel的属性值,这个值是通过bind或者connect设置到Channel
+       Bootstrap c;one: 创建一个当前克隆
+       Bootstrap remoteAddress: 设置远程地址
+       ChannelFuture connect: 连接到远程节点并返回一个ChannelFuture,会在连续操作完成后接受到通知
+       ChannelFuture bind: 绑定Channel并返回一个ChannelFuture,其将会在绑定操作完成后接受通知,在那之后必须调用Channel.connect建立连接
+
+       引导客户端:
+        Bootstrap类负责为客户端和无连接协议的应用程序创建Channel
+            Bootstrap类将会在bind方法被调用后创建一个新的Channel,在这之后会调用connect方法建立连接
+
+channel ---nio NioEventLoopGroup
+         |
+        ---oio OioEventLoopGroup
+         |
+        ---socket --- nio NioDatagramChannel NioServerSocketChannel NioSocketChannel
+                   |
+                  --- oio OioDatagramChannel OioServerSocketChannel OioSocketChannel
+
+IllegalStateException:当Group和Channel不兼容时出现
+
+    ServerBootstrap类:
+        group: 设置ServerBootstrap要用的EventLoopGroup,这个EventLoopGroup将用于ServerChannel和被接受的子Channel的I/O处理
+        channel: 设置被实例化的ServerChannel类
+        channelFactory: 如果不同默认构造函数创建channel,那么可以提供一个ChannelFactory
+        localAddress：指定ServerChannel应该绑定到本地地址,如果没有指定,操作系统会随机地址
+        option: 指定要应用到新创建的ServerChannel的ChannelConfig的ChannelOption
+        attr: 指定ServerChannel上的属性
+        childAttr: 将属性设置给已经被接受的子Channel
+        handler: 设置被添加到ServerChannel的ChannelPipeline中的ChannelHandler,更加常用的方法参见childHandler
+        childHandler: 设置将被添加已被接受的子Channel的ChannelPipeline中的ChannelHandler,和handler的区别是,前者所添加的Channel
+        -Handler由接受子Channel的ServerChannel处理,而childHandler方法所添加ChannelHandler将由已被接受的子channel处理,其代表一个
+        绑定到远程节点的套接字 handler在初始化时就会执行，而childHandler会在客户端成功connect后才执行，这是两者的区别。
+        clone: 克隆一个设置和原始的ServerBootstrap相同的ServerBootstrap
+        bind： 绑定ServerChannel并且返回一个ChannelFuture
+
+
+从Channel引导客户端
+        如果你的服务器正在处理一个客户端的请求,这个请求需要它充当第三方系统的客户端
+        1.你可以创建一个新的Bootstrap实例,为每个新客户端Channel定义一个EventLoop
+        2.更好的方案是通过已被接受的子Channel的EventLoop传递给Bootstrap的group方法共享EventLoop,减少开销
+
+在引导过程中添加多个ChannelHandler
+         ChannelInitializer:这个方法提供了一种将多个ChannelHandler添加到一个ChannelPipeline中的间便方法
+
+ChannelOption
+        我们可以通过option方法将ChannelOption应用到引导
+        我们可以通过AttributeKey设置一些数据项
+
+引导DatagramChannel
+        Bootstrap类也可以被用于无连接的协议。为此，Netty 提供了各种 DatagramChannel 的实现。唯一区别就是，不再调用 connect()方法，
+        而是只调用 bind()方法
+
+优雅关闭
+EventLoopGroup group = new NioEventLoopGroup();
+Bootstrap bootstrap = new Bootstrap();
+bootstrap.group(group)
+.channel(NioSocketChannel.class);
+...
+Future<?> future = group.shutdownGracefully();
+// block until the group has shutdown
+future.syncUninterruptibly();
